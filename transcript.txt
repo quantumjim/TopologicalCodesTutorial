@@ -1,0 +1,4202 @@
+Hello and welcome to this lecture on quantum computing,
+
+the first in a two-part series on quantum error correction.
+
+And in this, we're going to take a journey
+
+which is rather similar to the journey done historically,
+
+where we start off with simple classical methods
+
+for error correction, adapt them to the quantum realm,
+
+see why they work and why they don't quite work
+
+and then find quantum methods to do everything
+
+we need them to do.
+
+Okay, let's begin. And to begin,
+
+we need to think a little bit about what quantum errors are
+
+and why they need correcting.
+
+So any implementation of a qubit is going to fall short
+
+of the ideal.
+
+So a qubit is an abstract concept:
+
+The notion of a two level quantum system that is described
+
+by the theory of two level quantum systems.
+
+However, there's always gonna be something
+
+that's not quite right.
+
+We make these out of physical systems
+
+and they're never quite the perfect two level ideal
+
+that we want.
+
+The theory that describes them is never quite as simple
+
+as a nice, simple theory of two level quantum systems
+
+that we would like.
+
+They're always going to interact with an environment
+
+or with a thermal bath.
+
+There's always going to be some Hamiltonian
+
+inducing interactions.
+
+There's always gonna be something.
+
+Now in the superconducting qubits that we use in IBM,
+
+the two level quantum system is actually built
+
+out of an harmonic oscillator which is not just
+
+a two level system but is a many level quantum system,
+
+we just isolate two of those particular states in order
+
+to use those which are the ground state
+
+and the first excited state.
+
+So already you can start to see
+
+where the approximation begins.
+
+Also the ground state and the first excited state
+
+of an an harmonic oscillator are states
+
+with different energies.
+
+A qubit should not have the notion of there being
+
+states with different energies.
+
+They are described by an energy-less ideal theory.
+
+And so, the fact that there are different energies
+
+in the qubit means that there are effects
+
+that need to be accounted for.
+
+One of which being that it's more desirable,
+
+(if I'm to anthropomorphize the qubit
+
+or a non-harmonic oscillator),
+
+it is more desirable to be down in the ground state
+
+and so, we are likely to have transitions where it goes
+
+from the |1> state to the |0> state
+
+which we shouldn't actually have,
+
+at least according to the abstract theory of a qubit.
+
+Well, so all of the gates that we do are slightly wrong
+
+and there are external forces such as radiation
+
+or just thermal noise and the measurements are not perfect.
+
+When we do a measurement, we interact with our qubit
+
+in a way that we measure a squiggly line
+
+and some of those squiggly lines are squiggly lines
+
+that tell us it's a 0 and some of those squiggly lines
+
+are squiggly lines that tell us it's a 1
+
+and we have to try and work out given any squiggly line,
+
+which is it?
+
+Also there are interactions with the other qubits
+
+on the chip which means that when we are getting a 0
+
+or 1 from a particular qubit, then we might actually
+
+be getting a little hint about what's going on
+
+with the neighbors as well.
+
+So there are difficulties in measurement as well
+
+that we have to take into account.
+
+So any real life physical kit system
+
+whether it be superconducting qubits
+
+or spin qubits or topological qubits or something else,
+
+is going to be a bit rubbish and so,
+
+we have to deal with that.
+
+We have to take these noisy qubits and try and craft them
+
+into the perfect ideal qubit that we always assume
+
+when we think about algorithms.
+
+And one thing just to note here is that even though
+
+there are many different types of errors,
+
+we can actually boil it all down
+
+at least in a simple way to just three.
+
+So imagine that because of something,
+
+some gremlin that lives in our chip applies some unitary
+
+at some point in our circuit.
+
+Well, that could be any unitary.
+
+So how do we fix any possible unitary that's gonna hit
+
+any possible point on our circuit?
+
+Well, we can use the fact that any matrix can be decomposed
+
+into Pauli operators.
+
+So we can think of it as some coefficient,
+
+times the identity plus some other coefficient
+
+times the pauli X plus some other coefficient
+
+times the pauli Y. alpha, beta, gamma comes next.
+
+I know you will want me to be very exact
+
+on my Greek letters.
+
+And then some coefficient times Z.
+
+So this is a perfectly general way of writing
+
+a single qubit unitary.
+
+So if we're thinking of a single qubit unitary being applied
+
+by some error process in error, we can see
+
+that this is what we get.
+
+And because it's composed of an X, Y and Z,
+
+when we apply it to some state, then what we get
+
+is basically the superposition of our original state
+
+plus what would have happened if we had just applied an X
+
+to the qubit plus what would have happened if we had
+
+just applied a Y to the qubit plus what would have happened
+
+if we would have applied a Z to the qubit.
+
+So here actually this state psi could be a multi
+
+qubit state and so, I'm glossing over a few little details
+
+but hopefully you get the impression that we can think
+
+of any unitary applied in error as being as if we had either
+
+done nothing or done in X, Y or Z in superposition.
+
+So if we can figure out some way of detecting
+
+whether we've done an X or a Y or Z in error,
+
+then we can apply it in the case of any unitary.
+
+And similarly for a two qubit unitaries,
+
+we can decompose it into two qubit values
+
+as sort of like a pair of pauli errors have occurred.
+
+And so, basically we can make everything just into,
+
+have we done an X error, a Y error or a Z error?
+
+And in fact, we can even make it a little bit
+
+more simple than that because the Y pauli is proportional
+
+to X times Z.
+
+So we could just put X times Z in where we put Y before
+
+and it would still work.
+
+So now, it's whether we've got just an X or just a Z
+
+or X and Z together is what we have to detect.
+
+So it's sufficient just to be able to detect Xs and Zs.
+
+And so, what is an X?
+
+Well, often we will refer to this as a bit flip error
+
+at least when it is applied in error
+
+because it is the operation that takes |1> to |0>
+
+and |0> to |1>.
+
+And of course, I've just said them in the opposite order
+
+than I've written them down but nevertheless,
+
+hopefully you get the picture.
+
+And a Z error, similarly flips a |+> to |->
+
+and |-> to |+>.
+
+So because of that, we call it a phase flip error
+
+because of course these differ by the phase
+
+in the middle of the superposition.
+
+So if we just have the ability to detect both
+
+bit flip errors and phase flip errors,
+
+then we have the ability to detect everything.
+
+Now, there's details.
+
+There's weird things that can come up and you can write
+
+a whole paper about but that's basically what you need.
+
+If you can detect X and Z, then any spurious effect
+
+by any unitary or any other operation can be decomposed
+
+into the paulis and therefore decomposed into just having
+
+some superposition of bit flips and phase flips
+
+and by detecting big flips and phase flips
+
+and being able to correct them,
+
+then you can correct basically everything.
+
+So how are we going to detect bit flips and phase flips?
+
+Well, let's head back to the PowerPoint.
+
+So why do we need quantum error correction?
+
+When we have algorithms like Shor and Grover and so on,
+
+we assume perfect qubits.
+
+We assume this ideal abstract form of a qubit.
+
+And if we use actual physical qubits to run the algorithms,
+
+then the imperfections in those algorithms
+
+are going to build up over the course of the algorithm
+
+I mean, at the end, everything's a bit rubbish.
+
+So here are the histogram from an example
+
+of Grover's search algorithm, where it is searching
+
+for two particular strings rather than one.
+
+And you see that there are two strings that have very high
+
+probability but we would expect that these both
+
+have property of 50% than when we read out the final output
+
+we are going to get with 50% probability,
+
+one of these correct answers or the other one.
+
+But in fact, they are only more like 1/3
+
+rather than the 1/2.
+
+And there is quite significant probability
+
+for other answers as well.
+
+Those should all be zero but they're not zero
+
+and that's purely due to the effects of noise.
+
+And this is only a three qubit example of Grover's algorithm
+
+which is a pretty trivial example.
+
+It's only searching through eight different possibilities
+
+which you can do using methods other than quantum computing
+
+quite simply.
+
+So when we scale this up to useful examples
+
+of a search algorithm and these spurious results get higher
+
+and higher, the correct ones get lower and lower
+
+and that's basically no point to running them.
+
+So we need to sort out these errors somehow.
+
+And yeah, we do it by quantum error correction.
+
+So one of the important points to note
+
+in quantum error correction is that we need many
+
+physical qubits to make one logical qubit.
+
+So a physical qubit is the kind of thing that you use
+
+at the moment in IBM Quantum systems,
+
+the actual things on the devices, the things that are noisy.
+
+And logical qubits are the things that you assume
+
+that you have when using an algorithm.
+
+Something perfect, something that perfectly suits the ideal
+
+of what a qubit should be.
+
+And the way we build a logical qubit is by taking
+
+many physical qubits and combining them.
+
+So the diagram that you see on the screen at the moment
+
+represents a d=5 surface code.
+
+It has 17 qubits, so nine of them depicted as black dots
+
+and the rest depicted as these white dots.
+
+And it requires many controlled operations to be performed,
+
+so all of the coloured lines represent controlled operations
+
+that we need to be performing each syndrome measurement
+
+round and we need to be repeating these
+
+syndrome measurement rounds constantly.
+
+We'll talk about what a syndrome measurement round is later
+
+but this is just to impress upon you how difficult it is
+
+to build a logical qubit.
+
+You need lots of qubits and you need lots of gates
+
+to be performed.
+
+And this is just a minimal example.
+
+This is just like stage one of showing that you can
+
+build something that reduces the errors a little bit.
+
+It's not even what you need to reduce the errors
+
+significantly or enough to do quantum error correction.
+
+And we haven't even got onto the idea of how we actually
+
+do computations on these qubits.
+
+So yeah, you need to combine a lot of resources
+
+to get fault tolerance.
+
+And yeah, we'll talk more about that.
+
+In the near term, we don't use the full force
+
+of quantum error correction.
+
+So quantum error correction is this great theory
+
+which proves that we can do scalable and fault-tolerant
+
+quantum computing if we have enough qubits
+
+but it requires so many qubits as overhead,
+
+it's something that really can't really get started
+
+with at the moment.
+
+In the near term, there are more quick and dirty methods
+
+that we can use to clean things up.
+
+And really we can kind of expect to see
+
+a continuous transition between error mitigation
+
+and error correction, where we start going
+
+from quick and dirty and navigate towards clean and perfect
+
+theoretical but huge overheads.
+
+And yeah, so that's quantum error mitigation,
+
+quantum error correction and the journey between them
+
+which is something that we'll be doing over the next
+
+decade or so but we won't talk too much about mitigation
+
+in this lecture.
+
+Okay, so as I hinted at earlier, we're gonna be looking
+
+at the ideas behind error correction starting off
+
+classically and then going to quantumly.
+
+And we're gonna look through specific examples
+
+of the repetition code and the surface code.
+
+And we're gonna kinda see how the surface code
+
+can be thought of as a generalization
+
+of the repetition code.
+
+And then we'll also look at some of the most important
+
+techniques behind everything both in the context
+
+of the repetition code and the surface code
+
+which are doing syndrome measurements
+
+and performing decoding and doing gates
+
+on our encoded information, which is very important
+
+if we wanna actually use it in a computation.
+
+So let's begin with what is error correction in general.
+
+So as a very simple example of this, how you can think
+
+to you're just talking on the phone
+
+and you just have to answer yes or no.
+
+So now it's a bit of information that you're sending.
+
+There are two pieces of information that you,
+
+two probabilities that you should be taking into account
+
+when doing this, one is the probability that you will be
+
+misheard. So it's quite a weird error model,
+
+I'm gonna propose to you now where there's some probability
+
+that a yes sounds like a no or a no sounds like a yes
+
+but let's just take that strange error model
+
+because it makes things simpler for us.
+
+Of course, really, when you're talking on the phone
+
+and there are errors, it's more likely that your yes
+
+sounds like khasdkfg or your no sounds like hfdkfgsbs
+
+rather than them sounding like each other.
+
+Although I suppose that white noise that I tried to make
+
+there is maybe a bit old fashioned.
+
+Digitally now you might be more likely to get
+
+(man speaks gibberish)
+
+or just silence but maybe there's some machine learning
+
+running in the background trying to think about
+
+what you were answering and reconstruct it from the noise.
+
+So maybe that would turn yeses to nos and nos two yeses.
+
+Anyway, let's move on.
+
+So there's a probability that you get misunderstood.
+
+And there's also a probability that you should take
+
+into account which is the maximum acceptable
+
+error probability.
+
+So if you are just saying, yeah, yeah, no, no, no,
+
+you not even listening to the conversation,
+
+then you don't care if you're misunderstood.
+
+If you are the person in charge of a nation state
+
+and you're being asked matters of life and death,
+
+then probably you care a bit more, hopefully you do.
+
+So usually in our everyday lives, the probability
+
+of there being an error is very much less
+
+than the probability,
+
+the threshold probability that we care about.
+
+So we don't need to worry. But what if we do need to worry?
+
+What if we need to make sure that we are heard
+
+with a greater probability than the noisy line
+
+that we are talking on can naturally allow?
+
+Well, what we would probably do is repeat ourselves.
+
+So if we want to say, no, we'll say,
+
+no, no, no no, no, no, no, no, no, no, no, no, no, no, no.
+
+And if we want to say yes, we'll say,
+
+yes, yes, yes, yes, yes, yes, yes.
+
+Now what if the noise perturbs that message?
+
+Well, it would turn no, no, no, no, no, no, no, no, no, no
+
+into no no, no, no, no, no, yes, no, no, no, no, yes
+
+no, no, no, no, no, no, no, no, no, yes, no.
+
+Now that sounds pretty negative to me.
+
+If I heard someone say that, I would think,
+
+that probably means no rather, than hear the yeses
+
+and think, well, they just overruled everything.
+
+So we have taken our message, which is just a simple bit,
+
+a yes or a no and we have transformed it
+
+to a more complicated message, a bigger message,
+
+one that is stored on more bits which is just to repeat it.
+
+And then we have also decoded our message by looking
+
+at the majority to see whether it sounds more like a no
+
+or more like a yes.
+
+So I've already mentioned the decoding there
+
+but we can also think what is the probability
+
+that a misunderstanding will happen?
+
+And a misunderstanding will happen only when the majority
+
+of the copies are flipped.
+
+So if we only say it once, then the probability
+
+that the majority of the copies are flipped,
+
+it's just the probability that that one is flipped.
+
+If we say it twice, then we get to a point of ambiguity.
+
+If one of them is flipped, then we can see that something
+
+went wrong but we're not quite sure how to correct it.
+
+If we say three times, then it has to get flipped twice.
+
+Two of them have to be flipped to go from a majority yes
+
+to a majority no or vice versa.
+
+So the probability there goes quadratically
+
+with the probability of a flip on a single bit.
+
+For the repetitions, we can come up with this big sum with,
+
+we have a binomial coefficient,
+
+the probability that each bit will flip,
+
+the probability that the rest of the bits will not flip.
+
+And what we find is, at least in the case that
+
+there is low probability, that it kind of scales
+
+as the probability divided by one minus the probability
+
+all to the power of the number of repetitions
+
+divided by two.
+
+And yeah, that's basically what we have.
+
+This ceiling function is because we want to remove
+
+the ambiguous case where it's 50/50.
+
+Now here, we've got rid of the binomial coefficient
+
+by just saying, okay, our P has to be sufficiently low.
+
+That binomial coefficient is actually quite important
+
+in our quantum error correction code because it tells you,
+
+well, how low does your P have to be for this to work.
+
+For the repetition code, which is very simple,
+
+the probability of a flip basically has to be less than 1/2
+
+to mean that you're more likely in the state
+
+you should be in than the other one and you're fine.
+
+For error correcting codes, the binomial coefficient
+
+that's gonna have a more effective effect and will mean that
+
+you have to be lower than another threshold.
+
+So for the surface code,
+
+you have to be lower than a 1% errors, that's a typically
+
+quoted figure in order for you to have this kind of scaling.
+
+But yeah, in general, you will expect that the probability
+
+will decay exponentially with d which is your code distance
+
+in the case of the repetition code that is the number
+
+of times you repeat. In the case of other codes,
+
+it typically varies somehow polynomially.
+
+For the surface codes, the code distance is the square root
+
+of the total number of qubits you use.
+
+But yeah, you would typically want that your probability
+
+of the errors overwhelming your encoding and causing you
+
+to decode incorrectly to be exponentially decreasing
+
+with some parameter d which scaled somehow as a power law
+
+with the number of bits or qubits that you use.
+
+Yes and then in that case, you can just use a big enough
+
+code and you can make the probability that it all goes wrong
+
+as small as you like.
+
+Right, so in this example, we had all of the basic elements
+
+of any protocol for error correction
+
+or quantum error correction, which is you have an input
+
+which is some information to protect.
+
+You have an encoding which is some way to transform
+
+that information to make it easier to protect.
+
+You have errors which are some weird, random things
+
+that happen.
+
+And then you have decoding which is you're trying to deduce
+
+the input from the perturbed message.
+
+For this example, was really one of communication
+
+where you have an input, you send and the sending process
+
+is what induces the errors and then you receive
+
+and then you decode and then you get the error
+
+on the message, sorry, and you go on with your life.
+
+For computation, it's more of a dynamic process
+
+where errors are introduced whenever we perform
+
+an operation and often the way we perform an operation
+
+depends on there not being an error.
+
+So if there is an error, we have to change our strategy
+
+for performing the operation to mitigate for that error.
+
+So for that, we need to catch errors as they are introduced,
+
+to detect them and to mitigate for them in some way
+
+or even ideally just to correct them.
+
+So that it can be done by constantly decoding
+
+and re-encoding.
+
+So we can have an input, we encode it and it goes through
+
+a noisy operation, it gets decoded
+
+and then it gets re-encoded, noisy operation,
+
+blah, blah, blah, blah, blah, blah, blah,
+
+many, many times as many times as it requires
+
+to keep it safe throughout our computation.
+
+And then at the end we get an output.
+
+So for example, we can do that with a single bit
+
+in the repetition code.
+
+Here the noisy operation is just doing nothing
+
+except that that's gonna have some errors occur in general.
+
+And from this, we can see that actually we don't need
+
+to completely decode and re-encode each time
+
+but just enough to fix the errors
+
+which it can be very important for the quantum case.
+
+So we take our input, which is either a 0 or a 1.
+
+If it's a 0, we turn it into 000.
+
+If it's a 1, we turn it into 111.
+
+And then this goes through a process where in this case,
+
+the bit on the right is flipped.
+
+So we get 001 if we had an original 0.
+
+Or 110 if we had an original 1.
+
+And then in our decoding we just see that that's obviously
+
+the odd one out, so that's where the error happened.
+
+And then we flip that back and so on and so forth.
+
+We just keep on detecting and correcting any errors
+
+that occur and then at the end we get an output.
+
+So this is a method that works great for bits
+
+but not so much for qubits because suppose we wanted
+
+to encode a superposition state.
+
+So superposition a_0 plus b_1.
+
+Then the |0> ould transform to |000>.
+
+The |1> would transform to |111>.
+
+So we'd get this superposition which is an entangled state
+
+of |000> and |111>.
+
+Now the decoding requires measurement and this is,
+
+there has to be measurement because we have to extract
+
+information about the system in order to get information
+
+about what errors have occurred to it.
+
+We need to get out the information about what errors
+
+have occurred, the only way to get our information
+
+is to perform some sort of measurement.
+
+And if we just measure the zeros and ones,
+
+that destroys the superposition.
+
+So we have allowed ourselves to correct bit flips
+
+by performing the measurement but we've caused essentially
+
+something worse than a phase flip
+
+which is to destroy a superposition.
+
+So to protect against one bad thing, we caused another
+
+and that's obviously not what we want.
+
+To solve this, we need to be more careful with the way we do
+
+the measurement.
+
+We do need to make measurements but we should only
+
+extract the information we need to extract which is,
+
+some clues as to whether or not the errors have occurred
+
+or not.
+
+So what we need to measure is not the qubits
+
+or the bits themselves to get their values but some sort
+
+of joint information about relationships between the bits.
+
+So let's look at an example with a lot more repetitions.
+
+Here we have a 0 turned into 000...,
+
+(yes, lots of 0s, we get it!).
+
+And a one turned into 1, 1... (and all the rest).
+
+And then initially we, well, okay, this is initially
+
+our initial zeros.
+
+Then we have some errors.
+
+So we have errors occur on this set of three bits
+
+over on the left and then there's one bit more
+
+towards the right.
+
+And here we're comparing what happens both in the case
+
+that we encoded the 0 and in the case that we encoded
+
+the 1 but with the errors occurring in the same places.
+
+So if we looked at those bits to see what they were,
+
+we would soon see that there are a few of them
+
+that are not in accordance to the majority
+
+and we could guess that that might be the result of an error
+
+but we would also collapse any possible superposition.
+
+But instead what we could try to measure
+
+is the parity of pairs.
+
+So we could look at any pair of these bits and ask,
+
+how they just seem more different?
+
+So in this case, we'd look at these and then we'd say,
+
+well, they're different.
+
+So that's why there's this blue non equal sign down here.
+
+We look at our next, okay, they're the same.
+
+We look at the next pair, they're the same.
+
+We look at the next pair, they're different.
+
+And so, we can continue that and look at that information
+
+of same or different between different pairs.
+
+And this is gonna be the same for an encoded 0
+
+as for an encoded 1.
+
+So this is giving us information about the errors
+
+but it's not giving us any information about
+
+what was encoded because these the same
+
+or different information is completely the same
+
+no matter what was encoded.
+
+But with this information we can determine where the errors
+
+were because these not equal signs form the walls
+
+of the areas of the domains where the errors occur.
+
+So these three flips are enclosed by these two
+
+not equal signs.
+
+This single flip is enclosed by these two not equal signs.
+
+So there are little flags telling us a set of errors
+
+begins or ends here.
+
+And so, by looking at all of those we can determine
+
+where the domains of errors are and we can correct them.
+
+So how do we perform these measurements?
+
+How do we get this parity information about pairs
+
+of bits or pairs of qubits?
+
+So this can be done with some extra qubits and here
+
+I'm kind of switching between talking about bits and qubits
+
+because I'm talking about basically a classical
+
+error correcting code and thinking about how to encode it
+
+on qubits so, there are a little bit interchangeable
+
+at the moment.
+
+So we can do this with some extra qubits.
+
+So here the blue and red bits or qubits
+
+that are on this diagram represent the ones
+
+that we are using in the code.
+
+So there are 000, if we're encoding a 0
+
+and that's what we see here.
+
+They would be 111 if we're encoding a 1.
+
+And only red one is the opposite value
+
+because it has been hit by an error.
+
+The two gray qubit or a bit values, some additional ones
+
+which are always initialized in the |0> state.
+
+And then we perform some controlled nots.
+
+So if we take this controlled not up the top here,
+
+and then the next one down, what they are doing is flipping
+
+that extra qubit, the qubit between that pair.
+
+They are flipping it depending on the value of the bit used
+
+for the encoding.
+
+So if we have a case as we have here,
+
+where both of these are in the state zero,
+
+then neither of those will flip that middle bit
+
+and it will come out 0.
+
+If we have the case where they're both 1
+
+because we're encoding a 1, then both of those
+
+would flip that middle bit.
+
+Flipping it from 0 to 1 but then back to 0 again.
+
+So in that case, it's 0.
+
+So in the cases that those two are the same,
+
+the middle bit qubit will be measured
+
+and give an output of 0.
+
+So 0 means that they're same, but if they are different
+
+than one of those will flip it and the other one won't
+
+and we'll get an output of 1.
+
+We don't get any information about which was the one
+
+that was responsible for flipping it, we just see
+
+that one of them is different from the other.
+
+So we get information about the parity without learning
+
+any information about what the values actually are,
+
+so this is what we need.
+
+So in the bottom one here because we have a case where one
+
+of them is 0 and the other one is 1,
+
+then the extra qubit's output is a 1.
+
+And so by taking that information in this particular case,
+
+we can deduce that, okay, there's a barrier
+
+over near the end and so, it must be that end qubit
+
+is the one that was incorrect.
+
+And so, we correct it by doing another flip to flip it back.
+
+So these parity measurements are repeated over the course
+
+of the computation and the results are used to identify
+
+where the error is unlikely to have happened
+
+and remove their effects.
+
+And this process of looking at these values and thinking,
+
+well, what could have caused this?
+
+What was the error in this case?
+
+Is done by the decoding process.
+
+So the decoding process here is not trying to get
+
+the message out, it's just looking at the hint
+
+as to what errors occurred and use that to determine
+
+how to correct the errors.
+
+And by repeating this process many times
+
+of extracting this information, a new thing that to correct
+
+what's happening, we can protect against bit flips
+
+for arbitrarily long time.
+
+So this process is known as syndrome measurement
+
+and the result is known as a syndrome.
+
+And so, all codes have some form of syndrome measurement
+
+and are often assisted by auxiliary qubits
+
+as we see here where we sort of use controlled operations
+
+to move the information about these hints as to whether
+
+or not errors have occurred onto the auxiliary qubits
+
+and then measure those.
+
+It's not always quite like that but this is often
+
+how it's done.
+
+So they are used to check that the qubits
+
+are doing what they should be and they typically
+
+have a value that they take which is typically 0,
+
+telling you everything's good whereas if they take
+
+a different value, typically 1, is telling you
+
+"Warning! Warning! Some sort of error happened!"
+
+and then you have to look at all of the syndrome
+
+to try and deduce where the error happened.
+
+Yeah, so they provide us the clues and we have to solve
+
+the puzzle about how to correct the errors.
+
+So for an example of decoding, let's start
+
+with an unrealistically simple case which is that errors
+
+occur between the parity measurements only
+
+and not during the parity measurements.
+
+So that we do all the parity measurements,
+
+that tells us some information and then we have
+
+a moment where errors can come and prod things
+
+and then we do the parity measurements again
+
+and so, each time we do the parity measurements,
+
+it tells us well, some information.
+
+So here we have time going from top to bottom,
+
+so in the bottom row, in this example we see
+
+an error happening and it causes these two parity
+
+measurements to tell us something is wrong.
+
+Now, let's suppose we're just compiling the information,
+
+we're not doing anything with it at that point.
+
+So in the next time step, the we're still gonna see
+
+that those two are flagging up that something is wrong
+
+'cause we haven't corrected it yet.
+
+But now there's been a new error which flags
+
+that something is wrong.
+
+And then, in the next round, a number of the bits flips
+
+and this moves one of these things that's telling us
+
+something is wrong because now these two
+
+are no longer different, they are now the same
+
+because that error has been joined by another.
+
+So how can we correct this?
+
+Well, one way is to simply filter out
+
+what has changed between each pair of rounds to see
+
+what new errors have occurred during each pair of rounds.
+
+So here we initially expected everything to be fine,
+
+these two weren't fine.
+
+So that's new and we flag it up.
+
+The second time, these two say something's wrong
+
+but we already know that, they should still be telling us
+
+something's wrong at that point.
+
+Then telling us something is wrong is what we expect
+
+and it's not a signal of any new errors.
+
+But these two, we didn't expect.
+
+So that is something to take into account.
+
+In this case, we did not expect it to tell us something
+
+was wrong here but we also did not expect it to tell us
+
+everything was okay there, so in that case,
+
+telling us everything's okay when we expect it to be
+
+telling us that everything's not okay is a signature
+
+that something different has happened.
+
+Some new error has been introduced, so we flag that.
+
+And the next one, then, oh yes, so in this case,
+
+there wasn't a bit flip, caused an error here
+
+and it persisted for a little while but then it was hit
+
+by another bit flip.
+
+So the errors corrected themselves.
+
+But from our perspective, we were expecting to see
+
+an error here and we didn't.
+
+So now we flag that up and so on.
+
+And so now in each case, it's a pretty easy decoding process
+
+because we just have these pairs of things
+
+saying something weird happened around the single bit
+
+and so we can say, oh, well, there's a bit flip there,
+
+there was a bit flip there, there was a bit flip there,
+
+there was a bit flip there, there was a bit flip there.
+
+Job done, that's our decoding.
+
+So basically in more complicated cases we can use a majority
+
+voting where we use these domain walls to split everything
+
+into two domains, see which domain is the bigger one
+
+and assume that that was the one that didn't get hit
+
+by errors and then assume the smaller one is the one
+
+that did get hit by errors because errors hopefully
+
+are relatively rare.
+
+Now, if we have another simple model of noise
+
+but one in which it's a little bit more complicated,
+
+we can say that the measurements could randomly lie.
+
+So when we make a measurement, it doesn't give us
+
+the true result all of the time, there's some probability
+
+that it's incorrect.
+
+We can again, look for changes between measurement rounds.
+
+So here, we didn't expect these two, so that was a change.
+
+Here, we did expect them, so that wasn't a change.
+
+Here, we just got one pair of bits telling us
+
+that they are different in the middle of nowhere.
+
+Well, that's weird.
+
+So that's something to flag up.
+
+And then the next round it tells us,
+
+oh, they're not different after all.
+
+And so, does that forevermore as well.
+
+Okay, well, we expected to see something there
+
+and we saw the wrong thing so, we flag that up and yeah,
+
+so on and so forth.
+
+Well, what we're seeing in this case is that,
+
+well, when we have errors on bits or qubits,
+
+when we have bit flip error, then it's causing a pair
+
+of these things to be flagged up horizontally.
+
+But this case was probably just our measurement lying to us.
+
+And that causes us to have pairs of these little flags
+
+telling us that something has gone wrong vertically,
+
+so in the time direction.
+
+So this is now a more complicated process for decoding
+
+where we don't just do lots of majority voting
+
+but we've got to look for pairs of hints which are going
+
+to be oriented in any direction in this two dimensional
+
+space caused by the actual space of the code
+
+and then also time.
+
+And when we look for surface code decoding later,
+
+the surface code is gonna be more
+
+of a two dimensional object and then by adding in time,
+
+we have a three dimensional decoding process
+
+but it's gonna be very much the same algorithm
+
+that we actually use.
+
+So there are many ways to try and take this sort
+
+of two dimensional information about weird things happening
+
+and try and work out what error occurred
+
+with different pros and cons.
+
+But often the best way is to think about it as a graph
+
+where the defects are nodes and the number of errors
+
+required to link them are weighted edges and they likely
+
+set of errors corresponds to the minimum weight
+
+perfect matching of the graph.
+
+What is a graph?
+
+At least in the mathematical sense, it's a collection
+
+of nodes and edges where the edges connect the nodes
+
+and then we can pose all sorts of mathematical problems
+
+based on this.
+
+And one problem is, given a graph, is it possible to find
+
+a perfect matching?
+
+So a perfect matching is a set of edges where each edge
+
+touches one and only one node.
+
+So for this graph we have here,
+
+here is a perfect matching where we keep this edge
+
+which connects these two.
+
+We keep this blue edge which connects the two
+
+now being colored blue.
+
+We keep the green edge which connects the two
+
+that have now been colored green.
+
+Now every edge is touched by, sorry, every *node* is touched
+
+by a single edge.
+
+And so, we found a matching which is essentially
+
+a pairing of the nodes such that the paired nodes
+
+are connected by an edge.
+
+Now, a minimal weight perfect matching is where we assign
+
+a number to each of the edges.
+
+And so, for a matching, we add up all of the numbers
+
+of the edges that are included and we want to find
+
+a perfect matching of minimal weight.
+
+So let's see why we might do this here.
+
+Well, we can think of these hints that we've got in orange
+
+as our nodes.
+
+And we can think of that being edges between these nodes,
+
+when it was possible for some error to have caused
+
+both of those.
+
+So if we of these two orange ones here and we think of them
+
+in complete isolation and what error could have caused us
+
+to have these two flags, one after the other?
+
+Well, it could have been caused by a single lie
+
+and a measurement error.
+
+So for those, we are connect them by an edge
+
+because it's possible to have performed an error
+
+which caused both of those in isolation.
+
+And we give that edge to weight one because only one error
+
+would have had to happen.
+
+Whereas for this one and this one, then it is possible
+
+an error could have caused those both to happen
+
+in isolation which is to have flipped the three bits
+
+between them but requires three errors,
+
+so we give that a weight of three.
+
+So here we've got an edge with weight of one.
+
+Here we've got one with weight of three.
+
+Now, if we were to think about this one and that one,
+
+now what would have had to happen here?
+
+Well, we could have a node here and here
+
+created in isolation if we had three bit flips between them.
+
+And if there was a measurement error causing this one
+
+to have registered the wrong result that could have made it
+
+seem like it occurred a little bit earlier.
+
+So we would need three errors on actual bits
+
+and one measurement error to cause these two to occur
+
+in isolation.
+
+So we can assign that a weight of four
+
+or we might just do change our weight a little bit
+
+if the property of a measurement error is much more
+
+or less likely than the property of an error on a bit
+
+then we might use that information in defining our weights
+
+but let's just use a number of errors so far.
+
+So that would be a weight of four.
+
+For these two, it would be a weight of one
+
+and so on and so forth.
+
+And then a matching of this would be a single set of errors
+
+that would have been responsible for the whole thing.
+
+And by choosing the minimum weight matching,
+
+we want to find the smallest number of errors
+
+that could have caused this.
+
+And so, just having a single measurement error here,
+
+a single measurement error here and a single bit flip error
+
+here would be that minimum weight perfect matching.
+
+And there is an algorithm to find these,
+
+so that's awesome.
+
+Okay, now let's move on to logical operations.
+
+We found a way to do an encoding
+
+which doesn't destroy superpositions,
+
+it can find a bit flip errors,
+
+we can use decoding to try and work out exactly
+
+where those bits of repairs were in order to take that
+
+information into account.
+
+But it's not just about protecting a qubit,
+
+it's also about trying to do things with it.
+
+So how do we perform logical operations?
+
+These are gates performed on our logical qubits.
+
+Well, the physical, oh, sorry, the logical X is very easy
+
+for the repetition code 'cause we just have to flip
+
+all of the repetitions. If we've got loads of zeros
+
+and we suddenly want them to be encoding a 1 instead
+
+of a 0, we just go and flip all of those zeros to ones.
+
+There you go, job done.
+
+So if there is some imperfection in our X gates
+
+that we perform when doing that flip, it just means
+
+that there is a little bit more error.
+
+So if we've done a load of syndrome measurements
+
+and then we want to do a logical X, so we do an X
+
+on all of those physical qubits and then we start doing
+
+syndrome measurements again.
+
+Then we can expect the syndrome measurements
+
+after the logical X to be a little bit more likely
+
+to see errors because there would have been some errors
+
+introduced by our physical Xs but it can still detect
+
+them and correct them in the same way.
+
+So that's perfectly fine.
+
+It's a logical operation which is consistent with our scheme
+
+for detecting and correcting errors.
+
+So the imperfections then they just get detected
+
+and corrected naturally, it's all good.
+
+However, for something like a rotation around the X axis
+
+and if you apply a rotation around the X axis,
+
+around some angle two theta, to the |0> state,
+
+that will give you some superposition of cos(theta)|0>
+
+sin(theta)|1> which encoded would be cos(theta)|000>
+
+and sin(theta)|111>
+
+So to go from a |000> to some superposition
+
+of cos(theta)|000> and sin(theta)|111>
+
+some complicated entangling process has to be performed
+
+there and that is not necessarily going to be nice
+
+and compatible with the scheme we've got
+
+for quantum error correction.
+
+We're gonna have to do some controlled operations
+
+between the qubits that are encoding
+
+the logical information and that means that
+
+if there are some errors occurring on one,
+
+those entangling operations might spread those errors around
+
+in ways that can't be nicely detected and corrected.
+
+So basically we actually have to take the code apart
+
+perform the rotation and then put it back together again.
+
+And so for that moment, as we've taken it apart
+
+and then perform the rotation, it's not actually protected.
+
+So we can't do this operation in a way
+
+that is fault tolerant using this code.
+
+So the limited set of fault tolerant gates
+
+is a major problem with the repetition code meaning that
+
+we can't use it for a universal quantum computation.
+
+It's not the only one though 'cause it only allows us
+
+to detect a bit flips and not phase flips.
+
+So we did add this additional feature such that it doesn't
+
+destroy superpositions but it doesn't protect them either.
+
+So if you've got phase flips in there, those phase flips
+
+are going to mess you up.
+
+So it's a good first example of the ideas behind
+
+quantum error correction but it can't give us a full
+
+fault tolerant quantum computation.
+
+So what would we need to do to make a good quantum code?
+
+Well, the problem with the repetition code is it treats
+
+Z basis states very different to Y and X basis states.
+
+So for example, the Z basis states are product states,
+
+|0> is |000>.
+
+|1> is just |111>.
+
+This is for three repetitions, of course.
+
+But the |+> state is a big superposition,
+
+a big entangled state.
+
+And so, obviously that is quite a big difference
+
+between those two basis states.
+
+Also, if you want to distinguish between encoded
+
+Z basis states, then this is very easy.
+
+Distinguishing between encoded X basis states
+
+is a lot harder.
+
+So distinguishing between encoded Z basis states
+
+is making a measurement, a Z measurement
+
+of the logical qubit.
+
+So how do we do that?
+
+Well, we've just repeated our information
+
+across a whole bunch of qubits.
+
+So we just looked at one of them and that's fine.
+
+Of course, we should look at all of them
+
+and do some decoding in general but in a perfect world,
+
+you can just look at one.
+
+However, to distinguish X basis states,
+
+you have to do something more complicated
+
+like undo the entire encoding and then look at one
+
+and undoing the entire encoding means we have to act
+
+on all of the qubits involved.
+
+So there's a big difference in effort between
+
+measuring the X basis and measuring the Z basis.
+
+Also, flipping between Z basis states requires d gates.
+
+So for going from all zeroes to all ones,
+
+you have to flip all of the qubits.
+
+But to go from an encoded |+> to an encoded |->,
+
+you can actually act on any qubit because every qubit
+
+has access to wherever it is |0> or |1>.
+
+And so, if you want to flip between |+> and |-> state,
+
+which just means giving a phase of minus one
+
+for the state |1> then you can do that on any of the qubits.
+
+So it's much more accessible.
+
+So instead of having to do something to everything,
+
+you just have to do one thing and you can do it
+
+anywhere you want.
+
+So this is why we're protected against bit flips
+
+because you have to put in so much effort to do
+
+a logical bit flip whereas to do a logical phase flip,
+
+you can do that very easily.
+
+And this is why superstitions are so fragile in this code
+
+because it has so many opportunities for errors to come
+
+and mess something up.
+
+So these are things that we have to look out for when moving
+
+beyond the repetition code to a truly quantum code.
+
+So I'm gonna finish off by giving you an example
+
+of where the repetition code is useful
+
+which is in benchmarking.
+
+So we might not be able to use it to actually protect
+
+our quantum information in universal quantum computation,
+
+however, it does test all of the standard things
+
+that we need like encoding bit values,
+
+detecting information using about errors
+
+using stabilizer measurements,
+
+performing decoding,
+
+all of that can be done with the repetition codes.
+
+We only need five qubits at most to do three repetitions
+
+and have the two auxiliary qubits to mediate
+
+the syndrome measurements.
+
+And we can use it to detect and correct at least bit flips.
+
+So there's two circuits that need to be run per code
+
+in order to do some sort of test of how well it works.
+
+And we've actually got a tool in Qiskit Ignis,
+
+which will do this for you.
+
+And also transform some bit strings that you get out
+
+as a result into a form that is more friendly
+
+for quantum error correction which is basically taking
+
+the raw zeros and ones from all of the measurements
+
+and doing that technique of only caring
+
+when our syndrome measurement is telling us something new
+
+in order to do the decoding much more easily.
+
+And when we're running this, it's important to know
+
+what qubits we're using exactly because if the transpiler
+
+takes the circuit we've made and it says,
+
+well, how can I do that on an actual device?
+
+And due to thick loads of swap gates and stuff in order
+
+to make it run, those swap gates and stuff,
+
+they're all gonna have errors of their own.
+
+And they're also gonna cause weird multi qubit errors
+
+that are not of the form that we're already assuming
+
+when we have shown that this code is actually good
+
+for stuff.
+
+So we have to think, well, I need a specific set of qubits
+
+in a particular order.
+
+So I need one to be the first repetition
+
+of my encoded value, let's use qubit 13 for that.
+
+And then I need another one to be the auxilliary qubit
+
+which is gonna perform a parity measurement.
+
+And then I need to do a cnot between those two,
+
+so let's use 14 for that one.
+
+And then I need another one to be the other half of that
+
+parity measurement, so let's choose qubit zero
+
+and then that's gonna be involved in a parity measurement
+
+of another qubit, so lets say that's going to involve
+
+qubit two and their axillary qubit is one.
+
+So, I'm basically needing to choose a line of qubits.
+
+And so, here I'm choosing 13, 14, 0, 1
+
+[Here I get confused for a bit]
+
+0, 1, 2, 12, 11,
+
+3, 4, 10, 9,
+
+5, 8, 6, 7.
+
+Why such a weird combination?
+
+Just to show you that weird combinations are possible.
+
+And then in Qiskit, you can specify in the initial layout
+
+where you're saying specifically you should use these qubits
+
+for my circuit.
+
+And then the transpiler will see,
+
+well, can I run the circuit if I use these specific qubits?
+
+And it will see that it can and then it won't bother
+
+with transpilation which is gonna mess everything up.
+
+So just to show you a benchmarking experiment that I ran
+
+and you can find this in a paper.
+
+I run it on the 53-qubit Rochester Device.
+
+Four codes from three repetitions to 23 repetitions.
+
+And I looked at the probability for encoding a 0
+
+and for encoding a 1, that the decoding gives me
+
+the wrong result and the results do show something
+
+that is a bit bumpier than theory would want
+
+but it is consistent with the idea of an exponential decay
+
+which is telling us that the bare minimum of what we would
+
+expect from these devices is nevertheless true,
+
+so that's pretty good.
+
+So yeah, you can use this as like as a an experiment
+
+to probe how noise is actually happening on real devices.
+
+And I've done this of course on a big device using my access
+
+to such things as someone who works for IBM Quantum
+
+but for the smaller devices such as this 15-qubit one,
+
+this is open for everyone so, anyone can start experimenting
+
+with noise on real devices using these methods.
+
+And before we go, I can give you Shor's code
+
+which was the one that really kickstarted
+
+quantum error correction.
+
+So I've talked about a d=5 repetition codes
+
+and also I've shown you results.
+
+So as you increase d up to for example 23 and beyond,
+
+then the effectiveness of this code increases exponentially.
+
+The probability that things go wrong
+
+decreases exponentially, it's all awesome.
+
+So this is one natural way to scale a repetition code
+
+in order to get more effective repetition codes.
+
+One other way we can do it is through concatenation.
+
+So let's take three qubits and we effectively combine
+
+those three qubits in order to create one
+
+less rubbish qubit.
+
+A qubit which is better protected against bit flip errors.
+
+Now we want to have it even more protected
+
+against bit flip errors, so one way we could do this
+
+is to take another set of three qubits and combine them
+
+also with the repetition code encoding and take another set
+
+of three qubits and combine those with the repetition
+
+code encoding and then we have three,
+
+well, not quite physical qubits because they have been
+
+improved a bit by encoding but not quite logical qubits
+
+because they've only been improved a little bit.
+
+So we can then take those three and use those as the basis
+
+for another level of repetition code in which we combine
+
+those and we get an even more protected qubit.
+
+So this is made up of these three qubits
+
+but these three qubits are each made up of three qubits,
+
+so we've actually got nine qubits involved here,
+
+all working together to make one quite protected
+
+against a bit flips qubit.
+
+And then we can do this again.
+
+Take three of those and concatenate them
+
+to make an even more protected qubit and so on and so forth.
+
+Another thing that we can note is that we can also make
+
+repetition codes that protect against phase flips.
+
+So what if we had an encoding which turned |+>
+
+into |+++> and |-> into |--->.
+
+So we're doing the repetition but we are encoding it
+
+in the X basis instead of the Z basis.
+
+And then similarly, we have parity measurements
+
+which detect when pairs of these are different
+
+in the X basis so, distinguishing between cases like
+
+|+-> and |-+> from cases like |++>
+
+and |-->.
+
+You can also define circuits that do that.
+
+And so, if this gives us a 1 telling us something's wrong,
+
+this gives us a 0 telling us something's right.
+
+That's a repetition code that protects against phase errors.
+
+So we can build repetition codes that protect us
+
+only against a bit flip errors, we can do repetition codes
+
+which protect us only against phase flip errors
+
+and we also have this notion of concatenation
+
+to improve a code.
+
+So what if we take a code that can protect
+
+against bit flip errors and concatenate that with a code
+
+that can protect against phase flip errors?
+
+Then we have a code that can protect against both.
+
+And that is Shor's 9-qubit code.
+
+So we have improved things a bit from then
+
+on the surface code is the form of generalizing
+
+the repetition code that we're actually going to look at
+
+next.
+
+But first let's dwell a little bit more
+
+on the kind of measurements
+
+that we did in the repetition code.
+
+First let's remind ourselves of the Bell basis states
+
+the lovely Bell basis states.
+
+We have phi+, which is correlated in the Z basis.
+
+So we have the superposition of the two even parity states
+
+for the Z basis.
+
+For the X basis
+
+we can also write it as a superposition
+
+of these two even parity states, so it's also correlated.
+
+For phi- it is correlated, and so even parity in the Z basis
+
+but anti-correlated in the X basis, and so odd parity.
+
+In the psi+ state we have this superposition
+
+of the two odd parity states in the Z basis.
+
+So it's anti-correlated, we have the superposition
+
+of the two even parity states in the X basis.
+
+And for psi-, it is anti-correlated,
+
+and so odd parity in both.
+
+So we have all of these combinations
+
+of odd and even parity in the Z and X basis.
+
+expressed in all of these Bell basis states.
+
+Now the parity measurement
+
+we looked at last time was aiming to distinguish
+
+between the subspace spanned by the two even parity states
+
+and the subspace spanned by the two odd parity states.
+
+So this means that if we had 0 0 or 1 1
+
+or any superposition of those
+
+then the parity measurement gives us the outcome 0.
+
+And importantly, if we do have a superposition
+
+it does not disturb that superposition
+
+because it's not extracting any information
+
+about the states that are inside that superposition.
+
+It's extracting some information
+
+that is true for both of those states.
+
+And so it doesn't care to disturb the superposition.
+
+Similarly, if we had 0 1 or 1 0
+
+or any superposition thereof,
+
+we would get the outcome 1,
+
+but those supervisions would not be disturbed.
+
+If we had a superposition of even parity states
+
+with odd parity states, then it would have to choose
+
+between the two and disturb the superposition.
+
+But if we just have even parity states
+
+and output to 0, superposition is fine
+
+odd parity states, output to 1, superposition's fine.
+
+And that means that similarly
+
+if we were to have the state phi+
+
+and we were to do one of these measurements
+
+it would tell us 0 for even parity.
+
+And then we would just still have the state phi+.
+
+Similarly, if we had phi-
+
+it would give us the outcome 0
+
+because both of these states are superpositions
+
+of the even parity states.
+
+So they also span this even parity subspace.
+
+And so we would just have the state phi-.
+
+We would get the outcome 0.
+
+It would be good.
+
+Similarly, the psi+ and psi- states
+
+which span the odd parity subspace.
+
+Would give us the outcome 1, but we would still have those.
+
+So we can think of this parity measurement as being
+
+it looks at whether we've got 0 0 or 1 1.
+
+And if we have either of those gives us a 0,
+
+or we can think about it in terms of the Bell basis
+
+as well, both are equally valid.
+
+Now with measurements, we can often think
+
+to write down an operator,
+
+which corresponds to that measurement.
+
+So for the Z measurement, we have the Z.
+
+So Z measurement is measuring
+
+whether we are in the state |0> or |1>.
+
+And the Z is a operator
+
+which has 0 and 1 as its eigenstates.
+
+And of course, the Z measurement distinguishes
+
+between whether we've got 0 or 1.
+
+And the Z operator distinguishes
+
+between the |0> and |1> eigenstates
+
+by giving them different eigenvalues.
+
+We have the eigenvalue of +1
+
+implicitly here for the |0> state.
+
+Eigenvalue -1 for the |1> state.
+
+So we use + and - 1 as the eigenvalues
+
+and 0 and 1 as the bit values that we get as a result
+
+which is a bit weird and inconsistent, but oh well.
+
+Similarly for the X measurement
+
+we have the eigenstates +1 and -1
+
+and they're distinguished by different eigenvalues as well.
+
+And also one thing that we know about X and Z measurements
+
+is that they are complimentary.
+
+And so if you were to do a Z measurement
+
+then it would give you a state
+
+which has a definite result for a Z measurement.
+
+So you would measure it, you get 0 or 1
+
+if you get 0, or you know that your state
+
+is in the state |0> now.
+
+If you were to measure it again
+
+you would get the outcome 0 with certainty.
+
+But if you were to measure X at that point,
+
+then X can be expressed as a,
+
+sorry, |0> can be expressed
+
+as the superposition of |+> and |->.
+
+So you would randomly get |+> or |->
+
+and whichever it chose, say |->,
+
+it would be |-> then forevermore.
+
+If you were to measure X more times
+
+you would keep on getting the outcome -
+
+until you were to say, measure Z again
+
+where you would get a random outcome of 0 or 1,
+
+and so it would continue.
+
+So basically Z measurements and X measurements
+
+are fighting against each other.
+
+When you measure one, it messes up
+
+what the outcome would be for the other one.
+
+And that's because they have different eigenbases
+
+and even more strongly than this, they anticommute,
+
+which means their eigenbases are very dissimilar.
+
+However, if we think about the operator
+
+that could correspond to the parity measurement
+
+that we've made, well, we can have one
+
+that has eigenstate |0 0> and |1 1> of course,
+
+because these are the states
+
+that we often describe this measurement in terms of,
+
+but both of those correspond to the same outcome.
+
+So we're not going to give them different eigenvalues.
+
+We're going to give them the same eigenvalue.
+
+And the other state has |0 1> and |1 0>.
+
+They are going to have different eigenvalues
+
+from the even parity subspace
+
+but they're going to have the same eigenvalue as each other.
+
+So we have this +1 eigenspace as we call it.
+
+It's the space spanned by the |0 0> and |1 1> states,
+
+the even parity states.
+
+And then we have the -1 eigenspace
+
+which is the space spanned by any state
+
+that can be considered as an eigenstate with eigenvalue -1.
+
+And so if we have any state which is an eigenstate
+
+of this, with eigenvalue +1,
+
+then we just get the outcome zero
+
+and the measurement does not affect it.
+
+And if we have any state which can be expressed
+
+as an eigenstate of this with eigenvalue -1
+
+which means it can be expressed
+
+as a superposition of |0 1> and |1 0>.
+
+And it will give us the outcome 1
+
+and will be otherwise unaffected.
+
+But we can just equally express this
+
+in terms of eigenstates phi+
+
+and phi- as the +1 eigenspace
+
+and psi+ and psi- as a -1 eigenspace.
+
+So we don't have to think of it
+
+in terms of |0 0>, |1 1>, you can think of it in terms
+
+of psi+ and psi- as well
+
+in terms of the Bell basis.
+
+And this operator actually corresponds
+
+to the tensor product of Z with itself on two qubits.
+
+So it's the two qubit ZZ.
+
+So when we talk about making a ZZ measurement
+
+it doesn't mean that we individually measure
+
+Z on two qubits,
+
+it actually means that we measure this parity.
+
+So it can in general be an entangling measurement
+
+or one that preserves entanglement.
+
+Because if we do a ZZ and our state is say psi+,
+
+then it will remain psi+,
+
+it won't get collapsed down into just zeroes and ones
+
+as it would if we did individual Z measurements of both.
+
+Similarly, we can write down an XX measurement.
+
+And this is expressed naturally
+
+in terms of |++> and |--> as the +1 eigenspace
+
+|+-> and |-+> as the -1 eigenspace,
+
+but we can also write this
+
+in terms of the Bell basis states.
+
+So in this case phi+ gets the eigenvalue +1 as does psi+,
+
+phi- gets the eigenvalue -1 as does psi-.
+
+And this then defines our XX measurement.
+
+And you can see that actually these now share an eigenspace.
+
+The ZZ and the XX share an eigenspace.
+
+There is a way of writing them
+
+where they have the same eigenstates.
+
+And this means that we can actually create states
+
+which have definite values when we do either measurement
+
+and they don't mess each other up.
+
+So if we had, for example, the state phi-,
+
+then when we made a ZZ measurement
+
+it wouldn't collapse that state,
+
+it wouldn't affect that state.
+
+It would just say 0.
+
+And if we were to then do an XX measurement
+
+it wouldn't mess up the state at all.
+
+It would just, with definite certainty,
+
+give us the outcome 1.
+
+And then if we went back to the ZZ we'd still get the 0.
+
+So this is the fundamental difference
+
+between ZZ and XX measurements
+
+with just single qubit Z and X measurement.
+
+Because we find that if we have XX and ZZ
+
+and we look at their commutation properties,
+
+then the fact that Z and X anticommute with each other
+
+means that for two, we will get two factors of -1.
+
+Those two factors of -1 will square,
+
+and therefore we find that ZZ and XX actually commute.
+
+So their measurements are completely compatible.
+
+We can swap between them without messing anything up.
+
+So on the repetition code, we've thought of
+
+having a line of qubits and then four pairs of qubits.
+
+So when they bring on that line
+
+we did these two qubit parity measurements
+
+which we now know are ZZ measurements.
+
+For the surface code we're going to go up
+
+to three dimensions, we have a square lattice.
+
+And we define our measurement
+
+in relation to what is neighboring on this lattice.
+
+We have measurements that are made
+
+around each plaquette, as we call them.
+
+So these are the squares of the lattice
+
+and the qubits here are the black dots.
+
+So we have four qubits around each square
+
+and around those we do ZZZZ measurements
+
+So here I'm using sigma_Z instead of a capital Z
+
+as I've been using otherwise
+
+it's often that people go between these two conventions.
+
+So that's no need to get too confused
+
+but they're representing the same thing which is Pauli Z.
+
+So we have the ZZZZ around the qubits of the plaquette.
+
+So we're making a four qubit parity measurement.
+
+Now at the top and the bottom, we have the sort of
+
+truncated plaquettes that only have three qubits.
+
+So what do we do with those?
+
+Well, we just make three qubit parity measurements
+
+and also on the vertices, we have four qubits
+
+around each vertices and the vertex, sorry.
+
+And on those make four qubit parity measurements
+
+but this time in the X basis so XXXX.
+
+And for the sides where we had these truncated vertices
+
+we do XXX parity measurements.
+
+So these are the measurements we're going to make
+
+why did we do that?
+
+How is it useful?
+
+Well, let's continue and we'll see.
+
+So let's first focus on the plaquette syndrome.
+
+And actually we're going to go through all of the steps
+
+of how this sort of error correction scheme works,
+
+but only with the plaquette syndrome,
+
+to see how it detects and corrects bit flip errors.
+
+So these are similar to the two qubit measurements
+
+in the repetition code where we make two qubit ZZs.
+
+And the circuit that we use is very similar.
+
+It's just, we do it controlled on four qubits
+
+instead of just controlled on two.
+
+So here we have our i j k l,
+
+which is what I'm calling the four qubits
+
+around the plaquette.
+
+And we do our controlled not,
+
+controlled on each of those four qubits
+
+and targeted on an auxiliary qubit that we can think of
+
+as living in the middle of the plaquette.
+
+And if there's an even number
+
+of |1>s around that plaquette, as we see here,
+
+than only two of those controlled nots
+
+will actually flip the auxiliary qubit, sorry,
+
+an even number will flip the auxiliary qubit
+
+which means it flips back to its original value of zero.
+
+And that's what we get as an outcome.
+
+Whereas if there's an odd number of ones
+
+we get an odd number of flips.
+
+And so we end up with a 1 at the end.
+
+So, so far so normal.
+
+So let's think of the defining a classical code now
+
+which uses these plaquette syndromes
+
+to detect and correct bit flips.
+
+And so we're just going to be classical so far
+
+and then we are going to make this quantum later.
+
+So let's define a valid state.
+
+So one of the states which,
+
+when we make the syndrome measurements
+
+we think, "oh right, everything's okay and that's good."
+
+And so in the case of the repetition code
+
+we associated the parity measurements having an outcome zero
+
+as being the case where everything is good
+
+and the parity measurements having an outcome one
+
+as being a clue of an error.
+
+So let's use that again.
+
+And we're going to try and find states for which there is
+
+a outcome of 0 for all of the parity measurements
+
+and that is going to encode one of our logical states.
+
+So what's the easiest case where we can have an outcome of 0
+
+for all of our parity measurements?
+
+Well, we could just have zeros everywhere,
+
+that's even parity.
+
+So all of our plaquettes will tell us
+
+that we have even parity.
+
+And what logical value can we store with this?
+
+Well, if we're storing a bit, then we're storing 0 or 1.
+
+And it kind of makes sense that zeros everywhere
+
+should be associated with 0.
+
+So let's do that.
+
+Now, what we can note from this is that
+
+there are lots of nearby states as we can call them,
+
+that also have even parity on all of the plaquettes.
+
+So for example, if you just flipped four bits
+
+around this particular vertex, you would get another state
+
+which when you look around each plaquette
+
+you have an even number of ones.
+
+So that's even parity.
+
+So this state should not be associated with our logical 1,
+
+because it is very close to our logical 0,
+
+you only needed to flip four bits
+
+in order to get from one to the other
+
+and making the code bigger
+
+is not going to make it more complicated
+
+to flip from one to the other.
+
+It's always just going to be four bit flips away.
+
+Similarly, we can go from that to flipping these three bits
+
+and having something which is a little bit further away
+
+from our original state, but still quite close to a state
+
+which is quite close to our original state.
+
+We can flip another four bits and so on and so forth.
+
+It turns out that we get a very large family of states
+
+which are very close to each other.
+
+And so we're going to treat these all
+
+as alternative ways to store a 0.
+
+They're all going to be within a family of states
+
+which are corresponding to a logical 0.
+
+And in fact, the way we can generate this family of states
+
+is to start off with the all |0> state,
+
+pick any vertex, flip all of the bits around that vertex,
+
+and then we have a new valid encoding of a 0.
+
+And this generates an exponentially large family,
+
+depending on which set of vertices you choose
+
+to flip all of the bits around.
+
+And so here we flipped all the bits around this vertex,
+
+here we've done this vertex and that vertex
+
+and this vertex and so on.
+
+So the states in this family can be very different
+
+but there is one feature they all share in common,
+
+which is that if we pick any line from top to bottom,
+
+which passes along the edges of the lattice
+
+then it has even parity.
+
+And we can see this because any line
+
+from top to bottom will go through,
+
+will basically go into a vertex and then out of a vertex.
+
+So whenever we flip all of the bits around the vertex
+
+it always encounters two bits that we have flipped.
+
+So it preserves even parity.
+
+So if we go just straight from top to bottom
+
+then we will find that even parity
+
+if we do any sort of complicated route
+
+from top to bottom, still, if it passes through vertices
+
+it will have even parity for any of these states
+
+which are just a vertex flip away from the all |0> state.
+
+So this gives us a clue about how to encode a 1,
+
+because if all of the states which correspond to a logical 0
+
+have even parity when we take a line from top to bottom,
+
+then what about states which have odd parity
+
+when we take a line from top to bottom?
+
+And we can generate these by, for example
+
+just taking a line that passes through plaquettes
+
+from left to right.
+
+And since it goes in and out of each plaquette
+
+then each plaquette has an even parity due to this line.
+
+But if we take any of these lines
+
+that pass through edges from top to bottom,
+
+then it will intersect that once
+
+and therefore have odd parity.
+
+So we can take this as the base of our family of states
+
+that correspond to the logical 1s.
+
+You can also generate an exponentially large family
+
+by doing this thing of picking a vertex
+
+flipping all of the bits around it.
+
+Okay.
+
+So what is the logical X and Z that we can perform
+
+on this logical qubit or logical bit?
+
+Well, what is logical Z?
+
+Well, we can think of a Z measurement, as we said
+
+as the measurement that distinguishes between 0 and 1.
+
+So in terms of measuring Z it is distinguishing
+
+between the subspace that corresponds to a logical 0
+
+an the subspace that corresponds to a logical 1.
+
+So the observable is one that gives even parity
+
+to all of the family that are corresponding to 0,
+
+odd the parity to all of the ones
+
+that correspond to logical 1.
+
+And so we can just take a tensor product
+
+of all of the sigma_Zs on this line,
+
+or on any line from top to bottom.
+
+So we could use one side, or we could use the other side
+
+or we could do any weird thing in the middle.
+
+I like the sides because I like to think of the sides
+
+as just being big plaquettes, but they're ones
+
+that we don't measure as part of the syndrome,
+
+but they're otherwise completely equivalent
+
+to the behavior of a plaquette,
+
+and we'll see more about why that's interesting later.
+
+Okay. So that was a logical Z,
+
+or measuring a logical Z at least.
+
+What about logical X?
+
+Now logical X is the thing that flips
+
+from 0 to 1 and 1 to 0.
+
+And so how do we do that?
+
+Well, we have to introduce one of these lines
+
+across the middle, and then, so taking the all |0> state,
+
+finding a line from left to right and flipping bits
+
+will take us from the 0 family to the 1 family,
+
+the 1 family to 0 family.
+
+And so basically we just need a tensor product
+
+of Xs that passes along one of these lines
+
+and we can do the top, or we can do them along the bottom,
+
+or we can do them along the middle,
+
+as we sort of see here, it doesn't matter.
+
+But again, I like tops and bottoms
+
+because they basically, we can think of them
+
+as a large vertex that we are not taking into account
+
+on the regular syndrome as well.
+
+Okay. So what are the effects of errors in this?
+
+Well, if we apply an X, so a bit flip, to any of the qubits
+
+then it would change the parity of its two neighbors.
+
+So here in an isolated bit flip.
+
+And so the parity of these two plaquettes
+
+is going to be flipped from their initial value,
+
+which is even, telling us everything's okay
+
+to odd telling us, well, there's something going on here.
+
+And we're representing that with this blue dot.
+
+Now, if you were to get a couple of bit flips
+
+close to each other, then it's like
+
+this bit flip has created these two plaquettes,
+
+or created two plaquettes
+
+which are saying something's wrong,
+
+but this second bit flip has made this plaquette
+
+actually think everything's okay again.
+
+So it's moved that hint of something being wrong
+
+has been effectively moved over here.
+
+So we have another instance of this over here and over here.
+
+And if they were next to each other
+
+we would have them moving horizontally or vertically.
+
+Now one interesting case is where
+
+we have a bit flip on the edge.
+
+There only one plaquette sees that something is wrong.
+
+And if we were using this edge to be our logical Z value
+
+then that logical Z value would also have been flipped.
+
+So this is what I'm saying, that you can think of this
+
+as being like a big plaquette
+
+whose boundary's just getting flipped
+
+corresponding to the logical value.
+
+So if we think of what would happen
+
+or what would need to happen in order to create an X error,
+
+then it's basically like you've done a bit flip here, say,
+
+and it's created these two plaquettes
+
+in which something is wrong,
+
+but you need to then do another bit flip here
+
+which moves that hint along and then moves it again
+
+and again and again and again and again,
+
+and then throws it off that edge
+
+where you're not looking for it.
+
+And also a bit flip here that throws that one off that edge.
+
+And then you end up with a line all the way across
+
+and the hints have been thrown off the edge.
+
+And so this is an X error, a logical X error.
+
+Equivalently, we would actually just need
+
+to separate them sufficiently fast.
+
+So for example, if we had a flip here as we see
+
+but also one here, here, here, here, here
+
+and we had some random hint
+
+that something was wrong over near this side,
+
+we would probably think that we had errors
+
+here, here, and here.
+
+And just throw it off that edge to get rid of it
+
+but that would have consolidated the error
+
+rather than correcting it.
+
+So anything that stretches more than halfway across
+
+in terms of bit flips, that would be a problem
+
+but we have to stretch halfway across.
+
+So it's kind of like in the repetition code
+
+that we have to have these flips
+
+on more than half of the bits,
+
+but now it's rather than just half of the bits,
+
+It's half of a path that spans from left to right
+
+across the two-dimensional lattice.
+
+So with this, we have very much like the repetition code
+
+but just generalized to 2D for no apparent reason.
+
+And so hopefully you can see
+
+that it can correct bit flip errors and protect a bit value.
+
+So now let's move on to the vertex syndrome.
+
+So the vertex syndrome looks for parity
+
+in terms of the pluses and minuses.
+
+So one way we could do that is reverse the direction
+
+of our controlled nots and use a phase kickback effect.
+
+But here in this circuit, I'm just showing
+
+we do Hadamards either side of the control
+
+so that they're effectively controlled
+
+on the + and - states rather than the 0 and |1> states.
+
+And otherwise it's just exactly the same as before.
+
+So these operators can also allow us
+
+to encode and protect a bit value.
+
+But this time they were protecting
+
+against phase flip errors rather than bit flip errors.
+
+So let's think how they do that.
+
+So let's, well, let's associate our two values
+
+with + and -, and we can associate the + state
+
+with a state which has even parity on all of the vertices
+
+so the parity has to be done
+
+in terms of the pluses and minuses.
+
+So that can be easily done by just having + on everything.
+
+And then we can pick plaquettes
+
+and flip all of the qubits around the plaquette
+
+from pluses and minuses, minuses to pluses.
+
+And that generates an exponentially large family of states
+
+that correspond to the logical +.
+
+But all of them would have,
+
+if we go from left to right through the plaquettes,
+
+all of them would have even parity
+
+and that's because any plaquette is passed into and out of
+
+by any line that goes from left to right through plaquettes.
+
+And therefore you would encounter two flips
+
+which preserve the parity.
+
+However, if we were to do a line from top to bottom,
+
+that goes through the vertices.
+
+And so along the edges,
+
+then it would only pass through that once.
+
+And so if we flip all of those
+
+then we get odd parity for the pluses and minuses
+
+on a line through the plaquettes from left to right.
+
+So it's kind of like everything I said before
+
+with the plaquette syndrome, but rotated by 90 degrees,
+
+and in terms of pluses and minuses
+
+instead of zeros and ones, and any role played
+
+by the plaquette is now played by the vertices,
+
+And any role played by the vertices
+
+is now played by the plaquettes.
+
+So that's why I'm not going into it
+
+in excruciating detail because it's just the same again
+
+but rotated 90 degrees, plaquettes and vertices swapped,
+
+and 0 and 1, and + and - swapped.
+
+Yes.
+
+So now for this encoding, what are the logical X and Z?
+
+So the logical X is the thing that can distinguish
+
+between the + and the - states.
+
+So we're thinking of measuring the logical X.
+
+We need to be able to distinguish
+
+between the |+> and |-> states.
+
+Well, as we saw on the last slide the |+> and |-> states
+
+are defined by the parity when you do a line,
+
+well, a line from left to right,
+
+that goes through the plaquettes
+
+and it's defined by the parity of the pluses and minuses.
+
+And so we can detect that by having a line
+
+from left to right that goes through the plaquettes,
+
+which is the tensor product of Xs on all of those qubits,
+
+because that gives us the parity and the |+>/|-> basis.
+
+If we want to flip between the logical 0 and the logical 1,
+
+that means we have to take a line from top to bottom,
+
+which goes along the edges
+
+and flip pluses to minuses and minuses to plus.
+
+That's done by the Z operator.
+
+And so we need to pick a line from top to bottom
+
+that is composed of a tensor product of Z operators.
+
+And even though now we're thinking of measuring the X
+
+and before being the Z as a unitary,
+
+whereas before for the last encoding,
+
+we were thinking of the opposite way around,
+
+we find that the logical Z and X that are defined
+
+by this encoding are exactly the same as they are before.
+
+So this shows us that, uh,
+
+well this gives us a hint of what we'll see in a minute
+
+that these two encodings actually can be done
+
+at the same time.
+
+First let's apply a Z to any code qubit
+
+to see what the effect of a phase flip would be.
+
+Well, what it does is it flips the parity
+
+of the two vertices I have assigned.
+
+And if we do a couple,
+
+then it basically creates a pair of hints.
+
+And then the next phase flip moves one of those hints.
+
+We can also have these effects where if you do a flip
+
+on the top or the bottom, you only get one hint
+
+because the other one is kind of being
+
+effectively changing the value of the logical operator.
+
+And also, as a little hint,
+
+to when we get to the full quantum case,
+
+if we do a Y that also does a phase flip
+
+which flips the value of the two vertices on either side.
+
+And of course, as we'll see flips of those
+
+of the plaquettes as well.
+
+So if we put it all together
+
+this allows us to detect both bit flip and phase flip errors
+
+so we can detect X errors, Z errors, and Y errors
+
+because the plaquette syndrome detects the bit flips
+
+and the vertex syndrome detects the phase flips.
+
+And because the XXXX and the ZZZZ of these observables
+
+that correspond to these measurements commute,
+
+then they can be done simultaneously
+
+and they don't mess each other up.
+
+And the reason why they commute
+
+is because if we look at any plaquette
+
+and we look at the vertex next to it
+
+they overlap always on an even number of qubits.
+
+So just like XX and ZZ commute,
+
+so do all of these plaquette and vertex operations.
+
+So our encoded 0 has to be a state which
+
+when we measure all of the plaquette operators,
+
+we get the outcome 0, and we get that
+
+by just making it a superposition of all of these states,
+
+which would give us the outcome 0 for a plaquette operator.
+
+So, because it's made up of states that are even parity
+
+for that particular plaquette
+
+then it is also even parity for that particular plaquette.
+
+More interesting is how it is an eigenstate
+
+of the vertex operators.
+
+So it also has to be such that when you measure
+
+any of the vertex operators, you get even parity.
+
+So that means it has to be a +1 eigenstate
+
+in the vertex operators.
+
+And if you think of, say, this vertex here
+
+then if you were to apply the vertex operator
+
+it would take this state and turn it into this state.
+
+And it would take this state and turn it into that state.
+
+And so it's just permuting them in a superposition.
+
+And on those two,
+
+on that little superposition of those two particular bits
+
+that it doesn't do anything similarly, everywhere else.
+
+You're just going to get permutations
+
+of things that are already in the state.
+
+So it doesn't actually affect the state.
+
+So this big superposition is indeed an eigenstate
+
+of all the vertex operators with eigenvalue +1.
+
+And therefore, when you measure them
+
+you're going to get the outcome 0.
+
+Okay. So what are the Z and X operators
+
+for the qubit stored in this code?
+
+Well, exactly the same as the X operators
+
+that we've just been looking at so far
+
+because of this consistency between the two encodings.
+
+And so we can do these fault-tolerantly,
+
+because it just means
+
+between two syndrome measurement rounds
+
+we run across it with a bunch of Zs,
+
+We run across it with a bunch of Xs in the other direction.
+
+If we want to do an X.
+
+The Hadamard can also be performed fault-tolerantly.
+
+It's not quite so obvious how to do this,
+
+but what does the Hadamard do but map Xs to Zs and Z to Xs.
+
+So one thing you can actually do is take the code
+
+and rotate it by 90 degrees.
+
+So that now lefts and rights become tops and bottoms.
+
+And the only other thing to do is swap the roles
+
+of zeros and ones and pluses and minuses
+
+which can be done by just Hadamarding everything,
+
+relabeling your plaquettes as vertices
+
+and your vertices as plaquettes.
+
+So that can also be done fault-tolerantly,
+
+'cause it's mostly just,
+
+one of these rotations are a bit weird.
+
+But it's kind of classical relabeling
+
+of where you consider things to be
+
+and whether you consider things
+
+to be plaquettes or vertices, and the only quantum stuff
+
+is actually Hadamard on everything,
+
+which you do between syndrome measurement rounds
+
+and you adjust your syndrome measurements
+
+such that that doesn't mess everything up, yeah.
+
+Hadamards are weird, but they're also fault-tolerant.
+
+So obviously here we need highly entangled quantum states.
+
+The logical 0 is a highly entangled quantum state.
+
+A logical 1 is a highly entangled quantum state.
+
+Any superposition of them
+
+is a highly entangled quantum state.
+
+And they're exactly, they're actually examples
+
+of something called topologically ordered states
+
+which are quite an exotic form of many-body entanglement.
+
+Aren't these things hard to make?
+
+Well, the thing is that the measurements that we make
+
+in order to detect errors
+
+naturally will create and sustain them.
+
+So even though it is hard to make a big lattice
+
+and to do these measurements with sufficient accuracy
+
+in order to really sustain this,
+
+and this is something we're working towards,
+
+once we get those things in place
+
+it will become super easy to sustain them.
+
+Yeah, so as we said, last time, any error can be thought of
+
+as a superposition of X and Y and Z and nothing.
+
+So if we think of a genuine error being applied to this
+
+it will actually create a superposition of no error
+
+or a bit-flip error or a bit- and a phase-flip error
+
+or just a phase-flip error.
+
+And when we measure the syndrome
+
+it collapses it to one of those possibilities.
+
+So complex errors just become essentially Pauli noise.
+
+It's a little bit more complicated than that, because here
+
+we're just actually applying noise to one qubit.
+
+So we're very much just collapse it down to Pauli noise.
+
+If we applied our noise to all of the qubits
+
+then we might get interference effects going on
+
+which cause everything to be a little bit different,
+
+but basically we are collapsing everything down
+
+to Pauli noise and correcting it accordingly.
+
+Also how do you make the readout at the end,
+
+when you want to get your own logical 0 or 1 out?
+
+Well, you would need to do this fault-tolerantly,
+
+And if you were to measure a 0 or a 1, say,
+
+if you were to measure your logical qubit
+
+and their logical Z basis,
+
+then what you can do is just measure all of your code qubits
+
+and you don't care that that collapses a superposition
+
+and destroys the entanglement
+
+because this is the moment of readout.
+
+We're just getting the 0 or 1.
+
+And then if you wanted to recreate it,
+
+if you wanted to continue on in your computation
+
+you could just re encode a new 0 or 1,
+
+depending on what outcome you get.
+
+So when you do this read out what you find
+
+is that you get, well, the values of all of the qubits
+
+and this can be used to deduce one final set
+
+of syndrome measurements by going around
+
+all of the plaquettes.
+
+And also it can be used to find the final
+
+eigenstate like the final parity
+
+on our line from top to bottom.
+
+So you get a final syndrome measurement
+
+and you get the parity of your logical operation.
+
+You don't get any information
+
+about what's going on on the vertex stabilizers,
+
+because you've made single qubit Z measurements,
+
+but you also don't care because they commute with,
+
+so any error that would be picked up there
+
+is an error composed of Zs which actually commutes
+
+with the observable that you're reading out,
+
+So they wouldn't have any effect
+
+on the final readout anyway.
+
+So they don't need be detected or corrected
+
+at that particular point.
+
+So if you have measurement errors,
+
+which means that some of these are lying,
+
+it's exactly the same as they're being a bit flipped
+
+just before the measurement and those bit flips
+
+are detected and corrected using the standard ways
+
+of this code, So it's all good.
+
+Right.
+
+Now we move on to decoding,
+
+which is after we've detected where the bit flips are,
+
+how do we actually work out how to correct them?
+
+So we can't just do a majority voting here,
+
+as we put in the repetition code,
+
+we have to do something more complex.
+
+Now we don't actually need to work out what errors happened
+
+but we need to work out the equivalent class
+
+of what errors happened.
+
+So here, for example, we can have a case
+
+where we had two phase flip errors
+
+causing these two hints diagonally.
+
+And if someone were to come along
+
+and look at these two hints and think, well, what happened?
+
+Then they might deduce that it most likely
+
+it was just a couple of phase flips here,
+
+but it could equally have been
+
+a couple of phase flips here, which was it?
+
+Well, there's no need to actually care about that too much,
+
+because if you choose correctly,
+
+you do a couple of phase flips
+
+that canceled out the original ones, and it's all good.
+
+If you choose incorrectly, then what have you done?
+
+You've had a couple of Zs in error here and here
+
+and you've done a couple of Zs
+
+in order to try and correct this.
+
+And overall you get ZZZZ.
+
+What is ZZZZ around the plaquette,
+
+but one of these plaquette operators
+
+the states that we have are eigenstates
+
+to the plaquette operators,
+
+and so they act as if they were 0.
+
+Anyway, if you have isolated errors like this
+
+it's easily just to work out
+
+where the error happened and undo it.
+
+And here, if we had a couple of big errors
+
+next to each other and we thought that they were
+
+actually these smaller errors,
+
+Then this just corresponds to the product
+
+of a couple of plaquette operators,
+
+again, you're in an eigenstate of that, it's all good.
+
+The problems come when we have more errors
+
+and it's easy to get mixed up between what's going on.
+
+So here we have a whole bunch of errors
+
+that stretch almost halfway across.
+
+And so our best guess at what errors happened
+
+is maybe there was a bit flip here
+
+that caused that one in isolation.
+
+And maybe there was a bit of flip here that caused
+
+these two, a bit flip here that caused these two,
+
+actually, it was a bit flips here and here.
+
+And so we deduce something that is different
+
+from what is real by a line of phase flips
+
+that goes from top to bottom.
+
+And so rather than all of our mistakes in decoding
+
+producting together to be just plaquette operators,
+
+they product together to be a plaquette operators
+
+and a logical Z, and so we have caused a logical error.
+
+So we always want to be able to find the equivalent class
+
+where if you multiply the errors
+
+with what we've done to correct them
+
+you get just a product of plaquette operators.
+
+And we were at an eigenstate of those, so it's all good.
+
+What we don't want to get is the other equivalence class
+
+where it's a product of plaquette operators
+
+times a logical operator
+
+because that means that we have in error
+
+caused a logical operator to be applied.
+
+So one option for this is minimum weight perfect matching,
+
+and we actually already talked about that
+
+last time for the repetition code.
+
+In fact, when we went from the repetition code
+
+to having a time element,
+
+to take into account imperfections in measurement,
+
+then we used minimum weight perfect matching.
+
+We can do it exactly the same way here.
+
+So for example, you've got these two, you've got these two,
+
+what errors caused these two,
+
+but I try and work out what could have caused
+
+this set of hints with the minimum amount of errors.
+
+And you can think of that as well as an edge,
+
+that connects these with weight one.
+
+An edge connects these with weight two.
+
+You'd need 1, 2, 3 phase flips to connect those two,
+
+so that's an edge of weight three,
+
+and then you try and pair them up
+
+in a way that has a minimum total weight,
+
+corresponding to a minimum total number of errors
+
+causing this.
+
+So we can also do the decoding
+
+for the X errors and the Z errors
+
+independently by an independent matching procedure.
+
+Not necessarily the best way, but it's a way.
+
+We also do need to account for the effect of the edges.
+
+And we can do this by introducing virtual nodes.
+
+This is actually also required for the repetition code
+
+but we ignored it earlier.
+
+So for example, if you've got a case
+
+where you've got a single hint up here
+
+near the top and a single one down here
+
+then if you've not accounted for the effects of the edges
+
+the only two nodes on this entire thing are those two
+
+so you might think, well, let's connect them.
+
+And that would mean that you were trying to correct it
+
+by doing the Z, Z, Z, Z, Z, Z,
+
+almost all the way across the grid, and it was most likely
+
+Zs here and here that caused the error.
+
+So you've caused a logical operator, don't want to do that.
+
+And so you have a couple of virtual nodes corresponding
+
+to what could be the other side of them,
+
+if there was an error off the edge.
+
+However, you've also got to account for the fact
+
+that if there wasn't an error off the edge
+
+those notes have to be matched to something.
+
+So you match them to each other with weight zero.
+
+So in this case, if we had these two nodes
+
+and they were caused by errors,
+
+or most likely caused by errors near the edges,
+
+then we connect those to their virtual nodes by one,
+
+because that's the number of errors
+
+to a connect to over an edge.
+
+And to each other we have six
+
+and we connect these two with zero
+
+but the minimum weight matching
+
+is for us to pair these and pair these
+
+and to say there's two errors that could have done this.
+
+However, if we had these nodes nearer the middle,
+
+then they're most likely to have just been created
+
+with each other, then these edges
+
+that connect them to the edges are much larger.
+
+And so we have a minimum weight
+
+which is taken by pairing these two,
+
+getting the weight zero,
+
+and then pairing the two virtual notes to each other,
+
+or sorry, pairing these two getting a weight two,
+
+and pairing these two virtual nodes with each other
+
+to get a weight zero.
+
+Now, if we have imperfect measurements, then again
+
+we're going to have the fact that the measurement might lie
+
+and that's going to be a problem.
+
+So for example, if we had somewhere
+
+where we think there is no hint of an error,
+
+when actually there is,
+
+just because the measurement result was bad,
+
+then that could completely mess up our decoding.
+
+So we don't want to do that.
+
+And the way we do it is just
+
+in the same way as the repetition code.
+
+We use syndrome changes over time
+
+as our hint of errors that tells us
+
+both about errors actually occur on the code qubits,
+
+but also about these sort of imperfect measurements.
+
+And then we just extend our minimum weight perfect matching
+
+to three dimensions.
+
+And there we go, job done.
+
+The idea was to try and get a threshold.
+
+And so our threshold means that
+
+if we plot the probability that our decoding goes wrong
+
+against the probability that errors happen.
+
+So you could take the little p here
+
+as just being a probability
+
+of bit and phase errors on each qubit,
+
+the probability of a measurement lying,
+
+if we plot the probability that things go wrong
+
+against this little p what we expect to see
+
+is that the higher the probability that things go wrong
+
+on each qubit, the higher the probability
+
+that our decoding will fail overall.
+
+What we want is that if we increase
+
+the size of our code, things will be better.
+
+So if we plot this for a larger code
+
+we would expect the probability of getting things wrong
+
+to be smaller, but also we have to think
+
+that for a larger code, there is more to go wrong.
+
+There are more qubits, more places that error can happen.
+
+More probability that a big horrible error string
+
+will occur because with the repetition code
+
+we needed half of the bits to be flipped.
+
+And there's a certain binomial coefficient in the terms
+
+of how many different harms there are,
+
+which increases as we increase the size,
+
+but if we've now got two dimensions
+
+and we've got all of the possible ways of going across,
+
+then that's an even bigger binomial coefficient.
+
+So actually when things are really bad,
+
+when errors are very likely,
+
+then the size of a code will actually be worse
+
+because there's just more places for errors to happen.
+
+So we would find for our bigger code, actually,
+
+at some point the probability
+
+of things going wrong would be larger.
+
+And between those two points, there is a crossover
+
+between these regions where things get better
+
+with bigger size and things get worse with bigger size.
+
+And there's some scaling laws
+
+about how this crossover point moves a little bit
+
+but in general, we can just think there's a crossover point.
+
+And if we increase the size of our code to infinity
+
+then we're basically going to be
+
+in a region where the probability of logical errors
+
+is zero, until it suddenly becomes big.
+
+And this is the threshold.
+
+So the threshold is the value that we're trying to attain.
+
+We need to get our probability of noise
+
+below this threshold, and then we can just build
+
+bigger and bigger codes to make the probability
+
+of a logical error as small as we like.
+
+And the threshold is going to depend on our code
+
+but also on our decoding method
+
+and also on the details of the noise.
+
+So we've seen how to do logical X, logical Z.
+
+You can do a logical Y by doing both of them,
+
+I've talked briefly about how to do a logical Hanamard
+
+for a logical controlled not,
+
+that can be done without too much trouble
+
+because what is a controlled not
+
+but it does an X to one qubit depending on
+
+whether another qubit is |0> or |1>
+
+And whether or not a qubit
+
+is |0> or |1> in this case depends on parities.
+
+And so you can basically convince yourself, hopefully
+
+that if you do controlled nots between all of the qubits
+
+of one code and the correspondent qubit the other code
+
+then it will do a controlled not between those two codes
+
+because it acts independently on the qubits
+
+of each code than any imperfections associated with that
+
+are just going to turn up
+
+as little single qubit errors that you correct.
+
+So yeah, you can do multiple operations.
+
+You can do other Clifford operations as well
+
+if you do some crazy tricks,
+
+however no other logical operations,
+
+other than Clifford's to can be done fault-tolerantly.
+
+But we do have methods to sort of inject them.
+
+So we have this thing called magic state distillation
+
+which uses the fault-tolerant gates that we have
+
+from the Clifford gates to clean up
+
+the non-fault-tolerant gates that we don't
+
+to make a fault-tolerant Clifford.
+
+It's a bit messy, there's overheads involved
+
+but it can be done.
+
+So it shows that we can do
+
+fault-tolerant quantum computing with this code.
+
+But the means to do that are beyond this lecture.
+
+Also beyond this lecture is talk about anyons
+
+but let's do a little bit of it anyway.
+
+These hints that we create, when we do an error
+
+we create this pair of hints and these can be moved around.
+
+They're kind of like particles.
+
+And we find that they're actually
+
+a type of particle called anyons.
+
+So they're not bosons or fermions
+
+because they don't obey the exchange statistics
+
+of bosons and fermions.
+
+If you were to take one of the particles
+
+that is created on a plaquette.
+
+And one of the particles that was created on the vertex
+
+and you move one of them around another
+
+your wave function will acquire a phase of -1
+
+which is something that doesn't happen
+
+for bosons and fermions, it can only happen
+
+for particles that live in a two dimensional universe
+
+which is what the surface code essentially is.
+
+So, there's some interesting topological stuff
+
+that goes on in this code as well.
+
+Here's the maths of it,
+
+and I'll leave on screen for a moment,
+
+but basically we have done everything
+
+we need to do in this lecture.
+
+We have introduced the surface code.
+
+We've shown how it can detect and correct
+
+both bit and phase flips.
+
+We've seen how you can do a logical operations
+
+and that is what you need
+
+in order to do fault-tolerant quantum computing
+
+and run the kind of algorithms
+
+that we did in the previous lectures.
+
+So that's all for today.
+
+Thank you for listening.
+
+----
+
+All resources at qisk.it/topological_codes
+
+Come for help at ibm.co/joinqiskitslack
+
+ 
+
